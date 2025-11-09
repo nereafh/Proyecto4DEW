@@ -17,10 +17,7 @@ h1, h2 {
   margin: 20px auto;
   border-radius: 6px;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.2);
-  box-sizing: border-box;
-  padding: 0 0 20px;
-  overflow: hidden;
-  border: 1px solid lightgray;
+
 }
 
 /* Encabezado */
@@ -36,7 +33,7 @@ h1, h2 {
   margin: 20px auto;
   display: block;
   padding: 8px;
-  border: 1px solid #ddd;
+  border: 1px #ddd;
   border-radius: 4px;
   font-size: 16px;
   color: #444;
@@ -97,13 +94,13 @@ h1, h2 {
 
 #add-ex input, #add-ex select {
   display: block;
-  margin: 10px 0;
+  margin: 10px;
   padding: 10px;
   border: 1px solid #ccc;
   font-size: 16px;
   border-radius: 4px;
   width: 100%;
-  box-sizing: border-box;
+
 }
 
 #add-ex button {

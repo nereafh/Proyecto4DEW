@@ -1,161 +1,245 @@
-// ============================================================
-// Árbol de Directorios - JS Modular y Comentado
-// ============================================================
 
-// ==============================
-// SELECCIÓN DE ELEMENTOS DEL DOM
-// ==============================
-const rootList = document.querySelector('#root');      // Carpeta raíz
-const addForm = document.querySelector('#add-ex');      // Formulario de agregar
-const searchBar = document.querySelector('#search-ex input'); // Input de búsqueda
-const hideBox = document.querySelector('#hide');        // Checkbox para ocultar todo el árbol
 
-// ==============================
-// FUNCIONES AUXILIARES
-// ==============================
+//Elemento raíz del árbol
+const listaRaiz = document.querySelector('#root');
 
-// Crear un elemento (archivo o carpeta)
-function createElement(name, type){
-  const li = document.createElement('li');
-  const nameSpan = document.createElement('span');
-  nameSpan.textContent = type === 'file' && !name.includes('.') ? name+'.txt' : name;
-  nameSpan.classList.add('name');
+//Formulario para agregar archivos/carpetas
+const formularioAgregar = document.querySelector('#add-ex');
 
-  const deleteBtn = document.createElement('span');
-  deleteBtn.textContent = 'X';
-  deleteBtn.classList.add('delete');
+//Barra de búsqueda
+const barraBusqueda = document.querySelector('#search-ex input');
 
-  if(type === 'folder'){
+//Checkbox para ocultar todo el árbol
+const checkboxOcultar = document.querySelector('#hide');
+
+
+
+
+
+//Creo un elemento del árbol (carpeta o archivo), createElement(): crea elementos HTML desde JS
+function crearElemento(nombre, tipo) {
+
+  const li = document.createElement('li'); // El <li> principal
+  const nombreSpan = document.createElement('span'); // El texto del nombre
+
+  /*
+  Si es archivo y no tiene extensión → añade ".txt", textContent es una propiedad propia de JS
+  se puede: obtener texto y cambiarlo 
+  Diferencias con innerText y innerHTML
+  textoContent: muestra todo el texto incluyendo CSS y no inserta HTML
+
+  Al igual que la anterior classList también es una propiedad de JS: añade una clase 
+  .remove("clase"): borra una clase
+  .toggle("clase"): añade si no existe/quita si existe
+  .replace("c1", "c2"): remplaza una por otra 
+  .contains("clase"): comprueba si tiene clase 
+  */
+  nombreSpan.textContent = (tipo === 'file' && !nombre.includes('.')) ? nombre + '.txt' : nombre;
+  nombreSpan.classList.add('name');
+
+  /*
+  Creo el botón, pero ni aparece en pantalla ni funciona
+  lo agrego dentro de appendChild para que se visualice en pantalla,
+  por último le agrego la lógica con addEventListener
+  */
+  const botonEliminar = document.createElement('span');
+  botonEliminar.textContent = 'X';
+  botonEliminar.classList.add('delete');
+
+  
+  if (tipo === 'folder') {
+    // Es una carpeta
     li.classList.add('folder');
 
-    // Checkbox toggle
-    const toggle = document.createElement('input');
+    const toggle = document.createElement('input'); // Checkbox para mostrar/ocultar
     toggle.type = 'checkbox';
     toggle.checked = true;
     toggle.classList.add('toggle');
 
-    // Botón agregar
-    const addBtn = document.createElement('span');
-    addBtn.textContent = '+';
-    addBtn.classList.add('add');
+    const botonAgregar = document.createElement('span'); // Botón de "+"
+    botonAgregar.textContent = '+';
+    botonAgregar.classList.add('add');
 
-    const subList = document.createElement('ul');
+    const subLista = document.createElement('ul'); // Contenedor de hijos
 
-    li.appendChild(deleteBtn);
+    // Agrego al DOM, appendChild para visualizarse
+    li.appendChild(botonEliminar);
     li.appendChild(toggle);
-    li.appendChild(nameSpan);
-    li.appendChild(addBtn);
-    li.appendChild(subList);
+    li.appendChild(nombreSpan);
+    li.appendChild(botonAgregar);
+    li.appendChild(subLista);
 
   } else {
+    // Es un archivo
     li.classList.add('file');
-    li.appendChild(deleteBtn);
-    li.appendChild(nameSpan);
+    li.appendChild(botonEliminar);
+    li.appendChild(nombreSpan);
   }
+
   return li;
 }
 
-// Comprueba si ya existe un elemento con el mismo nombre dentro de un ul
-function existsInList(name, ul){
-  return Array.from(ul.querySelectorAll('.name'))
-              .some(n => n.textContent.toLowerCase() === name.toLowerCase() || 
-                         n.textContent.toLowerCase() === (name+'.txt').toLowerCase());
+
+
+/* 
+Comprueba si ya existe un archivo/carpeta con ese nombre dentro de una lista
+lista.querySelector('.name): selecciona todos los eventos con clase='name' 
+
+Como lo que devuelve no es un array como tal lo convierto a array
+*/
+function existeNombre(nombre, lista) {
+  const items = Array.from(lista.querySelectorAll('.name'));
+  let encontrado = false; // Variable para marcar si encontramos el nombre
+
+  items.forEach(function(item) {
+    const texto = item.textContent.toLowerCase();
+    if (texto === nombre.toLowerCase() || texto === (nombre + '.txt').toLowerCase()) {
+      encontrado = true; // Marcamos que encontramos el nombre
+    }
+  });
+
+  return encontrado;
 }
 
-// ==============================
-// EVENTOS PRINCIPALES
-// ==============================
 
-// BORRAR archivos o carpetas vacías
-rootList.addEventListener('click', function(e){
-  const target = e.target;
 
-  if(target.classList.contains('delete') && !target.classList.contains('disabled')){
-    const li = target.parentElement;
-    const subList = li.querySelector('ul');
-    if(subList && subList.children.length > 0){
+
+
+
+//---------------EVENTOS---------------
+//Borrar
+
+listaRaiz.addEventListener('click', function(evento) {
+  const objetivo = evento.target;
+
+  // Eliminar archivo o carpeta vacía
+  if (objetivo.classList.contains('delete') && !objetivo.classList.contains('disabled')) {
+    
+    const li = objetivo.parentElement; //coge el elemento li del botón padre ya sea archivo o carpeta que se quiere borrar
+    const subLista = li.querySelector('ul'); 
+
+    // Si hay hijos en la carpeta no se borra
+    if (subLista && subLista.children.length > 0) 
       return;
-    }
+    
     li.remove();
   }
 
-  // BOTÓN +: seleccionar carpeta para agregar elementos
-  if(target.classList.contains('add')){
-    rootList.querySelectorAll('.folder.selected').forEach(f => f.classList.remove('selected'));
-    const folderLi = target.parentElement;
-    folderLi.classList.add('selected');
-    addForm.querySelector('#itemName').focus();
+  // Seleccionar carpeta donde agregar elementos
+  if (objetivo.classList.contains('add')) {
+    listaRaiz.querySelectorAll('.folder.selected')
+      .forEach(function(c) { 
+        c.classList.remove('selected'); //Recorro las carpetas y les quito el elemento selected, es decir, que solo una carpete puede estar seleccionada al mismo tiempo
+      });
+
+    const carpetaSeleccionada = objetivo.parentElement; //parentElement: acceso al elemento padre
+    /*
+    Ejemplo:
+  <ul>
+    <li>
+      <span class="delete">X</span>
+      Archivo1.txt
+    </li>
+  </ul>
+  const boton = document.querySelector('.delete')
+  boton.parentElement será el <li> que lo contiene.
+    */
+    carpetaSeleccionada.classList.add('selected');
+
+    formularioAgregar.querySelector('#itemName').focus();
   }
 });
 
-// TOGGLE mostrar/ocultar contenido de carpeta
-rootList.addEventListener('change', function(e){
-  if(e.target.classList.contains('toggle')){
-    const subList = e.target.parentElement.querySelector('ul');
-    subList.style.display = e.target.checked ? 'block' : 'none';
+
+
+//--------------MOSTRAR Y OCULTAR------------
+listaRaiz.addEventListener('change', function(evento) {
+  if (evento.target.classList.contains('toggle')) {
+    const subLista = evento.target.parentElement.querySelector('ul');
+    subLista.style.display = evento.target.checked ? 'block' : 'none';
   }
 });
 
-// AGREGAR archivo o carpeta
-addForm.querySelector('button').addEventListener('click', function(e){
-  e.preventDefault();
 
-  const input = addForm.querySelector('#itemName');
-  const name = input.value.trim();
-  const typeSelect = addForm.querySelector('#itemType');
-  const type = typeSelect.value;
 
-  if(name === ''){
+//------------AGREGAR--------
+formularioAgregar.querySelector('button').addEventListener('click', function(e) {
+  e.preventDefault();//Evita que la página se recargue al agregar un archivo o carpeta 
+
+  const input = formularioAgregar.querySelector('#itemName');
+  const nombre = input.value.trim(); //Obtiene el nombre quitando espacios al principio y final
+  const tipo = formularioAgregar.querySelector('#itemType').value;
+
+  if (nombre === '') //si no hay nada se termina
     return;
-  }
 
-  const selectedFolder = rootList.querySelector('.folder.selected') || rootList.querySelector('li');
-  const targetUl = selectedFolder.querySelector('ul');
+  // Carpeta seleccionada o raíz
+  const carpeta = listaRaiz.querySelector('.folder.selected') || listaRaiz.querySelector('li');
 
-  if(existsInList(name, targetUl)){
+  const listaDestino = carpeta.querySelector('ul');
+
+  if (existeNombre(nombre, listaDestino)) 
     return;
-  }
 
-  const newEl = createElement(name, type);
-  targetUl.appendChild(newEl);
+  const nuevo = crearElemento(nombre, tipo);
+  listaDestino.appendChild(nuevo);
 
   input.value = '';
-  selectedFolder.classList.remove('selected');
+  carpeta.classList.remove('selected');
 });
 
-// OCULTAR TODO EL ÁRBOL
-hideBox.addEventListener('change', function(){
-  rootList.style.display = hideBox.checked ? 'none' : 'block';
+
+
+
+//-----------OCULTAR------------
+checkboxOcultar.addEventListener('change', function() {
+  listaRaiz.style.display = checkboxOcultar.checked ? 'none' : 'block';
 });
 
-// BUSCADOR y FILTRADO
-searchBar.addEventListener('keyup', function(e){
-  const term = e.target.value.toLowerCase();
 
-  function filterLi(li){
-    const name = li.querySelector('.name')?.textContent.toLowerCase() || '';
-    const children = li.querySelectorAll(':scope > ul > li');
-    let childMatch = false;
-    children.forEach(c => { if(filterLi(c)) childMatch = true; });
-    const selfMatch = name.includes(term);
-    li.style.display = selfMatch || childMatch ? 'list-item' : 'none';
-    return selfMatch || childMatch;
+
+
+//----------BARRA DE BÚSQUEDA-------------
+barraBusqueda.addEventListener('keyup', function(e) {
+  const texto = e.target.value.toLowerCase(); //todo a minúsculas
+
+  function filtrar(li) {
+    const nombre = li.querySelector('.name') ? li.querySelector('.name').textContent.toLowerCase() : '';
+    const hijos = li.querySelectorAll(':scope > ul > li');
+    let coincideHijo = false;
+
+    // Revisa hijos recursivamente
+    hijos.forEach(function(h) {
+      if (filtrar(h)) 
+        coincideHijo = true;
+    });
+
+    const coincidePropio = nombre.includes(texto);
+
+    li.style.display = (coincidePropio || coincideHijo) ? 'list-item' : 'none';
+
+    return coincidePropio || coincideHijo;
   }
 
-  rootList.querySelectorAll(':scope > li').forEach(li => filterLi(li));
+  listaRaiz.querySelectorAll(':scope > li').forEach(li => filtrar(li));
 });
 
-// AUTOCOMPLETAR CON TAB
-searchBar.addEventListener('keydown', function(e){
-  if(e.key === 'Tab'){
-    const term = searchBar.value.toLowerCase();
-    const matches = Array.from(rootList.querySelectorAll('.name'))
-                         .map(n => n.textContent)
-                         .filter(n => n.toLowerCase().startsWith(term));
 
-    if(matches.length === 1){
-      e.preventDefault();
-      searchBar.value = matches[0];
+
+
+//----------AUTOCOMPLETAR (TAB)-------------
+barraBusqueda.addEventListener('keydown', function(e) {
+  if (e.key === 'Tab') {
+    const texto = barraBusqueda.value.toLowerCase();
+
+    //Convierte la lista especial devuelta a array para poder usar métodos de array
+    const coincidencias = Array.from(listaRaiz.querySelectorAll('.name'))
+      .map(function(n) { return n.textContent; })
+      .filter(function(n) { return n.toLowerCase().startsWith(texto); });
+
+    if (coincidencias.length === 1) { //solo una coincidencia, evitando que se autocomplete si hay varias
+      e.preventDefault(); //Completa automáticamente el texto, bloqueando la acción por defecto que sería moverse al siguiente campo
+      barraBusqueda.value = coincidencias[0];
     }
   }
 });
