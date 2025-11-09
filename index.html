@@ -1,51 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link href="style.css" rel="stylesheet" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Árbol de Directorios</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    
-  	<div id="wrapper">
-	   	    	<div id="page-banner">
-	    		<h1 class="title">DESARROLLO WEB DEL LADO DEL CLIENTE</h1>
-          <p>Ejercicios Javascript</p>
-          <form id="search-ex">
-            <input type="text" placeholder="Buscador de ejercicios..." />
-          </form>
-	    	</div>
-	  
-	    <div id="ex-list">
-	    	<h2 class="title">Ejercicios Terminados</h2>
-	    	<ul>
-	    		<li>
-	    			<span class="name">Calle</span>
-	    			<span class="delete">borrar</span>
-	    		</li>
-	    		<li>
-	    			<span class="name">Aerolíneas</span>
-	    			<span class="delete">borrar</span>
-	    		</li>
-	    		<li>
-	    			<span class="name">Torres de Hanoi</span>
-	    			<span class="delete">borrar</span>
-	    		</li>
-	    		<li>
-	    			<span class="name">Árbol de Directorios</span>
-	    			<span class="delete">borrar</span>
-	    		</li>
-	    	</ul>
-	    </div>
-      	    <form id="add-ex">
-               <label>Ocultar todos los Ejercicios</label><input type="checkbox" id="hide" />
-        
-	    	<input type="text" placeholder="Agregar un Ejercicio..." />
-	    	<button>Agregar</button>
-	    </form>
+  <div id="wrapper">
+    <div id="page-banner">
+      <h1 class="title">DESARROLLO WEB DEL LADO DEL CLIENTE</h1>
+      <p>Ejercicio: Árbol de Directorios</p>
 
+      <!-- FORMULARIO DE BÚSQUEDA -->
+      <form id="search-ex">
+        <input type="text" placeholder="Buscar carpetas o archivos..." />
+      </form>
     </div>
-        <script src="index.js"></script>
+
+    <!-- LISTA DEL ÁRBOL DE DIRECTORIOS -->
+    <div id="ex-list">
+      <h2 class="title">Árbol de Directorios</h2>
+      <ul id="root">
+        <!-- Carpeta raíz -->
+        <li class="folder">
+          <span class="delete disabled">X</span>
+          <input type="checkbox" class="toggle" checked />
+          <span class="name">/</span>
+          <span class="add">+</span>
+          <ul></ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- FORMULARIO PARA AGREGAR ELEMENTOS -->
+    <form id="add-ex" name="add-ex">
+      <label>Ocultar todo el árbol</label>
+      <input type="checkbox" id="hide" />
+
+      <input type="text" id="itemName" placeholder="Nombre de archivo o carpeta..." />
+      <select id="itemType">
+        <option value="folder">Carpeta</option>
+        <option value="file">Archivo (.txt)</option>
+      </select>
+      <button>Agregar</button>
+    </form>
+  </div>
+
+  <!-- ARCHIVO JS -->
+  <script src="index.js"></script>
 </body>
 </html>

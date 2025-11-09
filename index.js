@@ -1,108 +1,193 @@
-//https://www.w3schools.com/html/html_forms.asp
+// ============================================================
+// Árbol de Directorios - Desarrollo Web Lado Cliente
+// Versión comentada y fácil de entender
+// ============================================================
 
-
+// ==============================
 // DEFINICIÓN DE FORMULARIOS Y LISTA
+// ==============================
 
-const searchForm=document.forms[0]; // Accede al primer formulario en el documento (índice [0]) y lo almacena en 'searchForm'.
+// Primer formulario (buscador)
+const searchForm = document.forms[0];
 
-const addForm=document.forms["add-ex"]; // Accede al formulario con el nombre add-ex y lo guarda en addForm.
+// Formulario para agregar elementos
+const addForm = document.forms["add-ex"];
 
-const list = document.querySelector('#ex-list ul'); // Selecciona el elemento 'ul' dentro del contenedor ''#ex-list' y lo asigna a list, donde se listarán los ejercicios.
+// Carpeta raíz del árbol
+const list = document.querySelector('#root');
 
-// BORRAR EJERCICIOS
+// ==============================
+// EVENTO: BORRAR ARCHIVOS O CARPETAS
+// ==============================
 
-// Añade un evento 'click' al elemento 'list' que se ejecutará cada vez que se haga clic en él.
-list.addEventListener('click', function(e) {
-  // Verifica si el elemento clicado tiene la clase 'delete', que indica que se ha clicado el botón para eliminar.
-  if(e.target.className == 'delete'){
-    const li = e.target.parentElement; // Selecciona el elemento 'li' padre del botón de eliminación, que es el elemento de la lista a eliminar.    
-    li.parentNode.removeChild(li); // Elimina el elemento 'li' del DOM
-    
-   // Dos formas alternativas de ocultar el elemento sin eliminarlo (estableciendo el estilo display: none).
-   //li.setAttribute ('style', 'display: none');
-   //li.style.display="none"; 
-    
-    //https://www.w3schools.com/jsref/prop_style_display.asp
+// Escucha cualquier click dentro del árbol
+list.addEventListener('click', function (e) {
+  // Verifica si se hizo click en un botón de borrar
+  if (e.target.classList.contains('delete') && !e.target.classList.contains('disabled')) {
+    const li = e.target.parentElement; // Elemento <li> que contiene el archivo o carpeta
+    const subList = li.querySelector('ul'); // Sublista dentro de la carpeta
+
+    // Evita eliminar carpetas que no estén vacías
+    if (subList && subList.children.length > 0) {
+      alert("No puedes eliminar una carpeta que no está vacía.");
+      return;
+    }
+
+    // Elimina el elemento del DOM
+    li.parentNode.removeChild(li);
   }
 });
 
+// ==============================
+// EVENTO: AGREGAR ARCHIVOS O CARPETAS
+// ==============================
 
-// OCULTAR EJERCICIOS
+// Botón "Agregar" del formulario inferior
+addForm.querySelector("button").addEventListener('click', function (e) {
+  e.preventDefault(); // Evita que el formulario recargue la página
 
+  // Obtiene los valores del formulario
+  const nameInput = addForm.querySelector('#itemName');
+  const typeSelect = addForm.querySelector('#itemType');
+  const value = nameInput.value.trim(); // Nombre del archivo o carpeta
+  const type = typeSelect.value; // Tipo: folder o file
 
-const hideBox = document.querySelector('#hide'); //Selecciona el elemento con id hide, que probablemente es un checkbox para ocultar la lista de ejercicios.
-// Añade un evento 'change' al checkbox 'hideBox' que se dispara al marcar o desmarcar.
-hideBox.addEventListener('change', function(){
-  // Si hideBox está marcado 'checked', oculta la lista de ejercicios (display: none); 
-  if(hideBox.checked){
-    list.style.display = "none";
-    // si está desmarcado, vuelve a mostrarla (display: initial).
-  } else {
-    list.style.display = "initial";
+  if (value === "") {
+    alert("Debes escribir un nombre.");
+    return;
   }
-});
 
+  // Verifica si ya existe el elemento en el nivel actual
+  const existing = list.querySelectorAll('.name');
+  for (let el of existing) {
+    if (el.textContent === value) {
+      alert("Ya existe un elemento con ese nombre.");
+      return;
+    }
+  }
 
-// AÑADIR EJERCICIOS
-
-// Añade un evento 'click' al botón dentro del formulario 'addForm' que se ejecutará al hacer clic en él.
-addForm.querySelector("button").addEventListener('click', function(e){
-
- // Previene la acción por defecto del botón para evitar que la página se recargue.
-  e.preventDefault();
-  
-  //https://www.w3schools.com/tags/att_button_type.asp
-
- // CREAR ELEMENTOS
-  
-  
-  const value = addForm.querySelector('input[type="text"]').value; // Obtiene el valor del campo de entrada de texto en addForm, que representa el nombre del ejercicio.
-  // Crea tres elementos HTML (<li>, <span> para el nombre del ejercicio, y otro <span> para el botón de eliminación).
-  const li = document.createElement('li');
-  const ExName = document.createElement('span');
-  const deleteBtn = document.createElement('span');
-
-// AGREGAR CONTENIDO DE TEXTO
-  
-  // Asigna el texto del ejercicio al span ExName y la palabra delete al botón deleteBtn.
-  ExName.textContent = value;
-  deleteBtn.textContent = 'delete';
-  
-// AGREGAR CLASES
-  
-  // Añade la clase 'name' a 'ExName' y 'delete' a 'deleteBtn' para estilización y referencia.
-  ExName.classList.add('name');
+  // ==============================
+  // CREACIÓN DE ELEMENTOS DEL DOM
+  // ==============================
+  const li = document.createElement('li'); // <li> contenedor
+  const deleteBtn = document.createElement('span'); // Botón "X" para borrar
+  deleteBtn.textContent = 'X';
   deleteBtn.classList.add('delete');
 
+  const nameSpan = document.createElement('span'); // Nombre visible
+  nameSpan.textContent = type === "file" && !value.includes('.') ? value + ".txt" : value;
+  nameSpan.classList.add('name');
 
-// AÑADIR AL DOM
-  
-  // Inserta 'ExName' y 'deleteBtn' dentro del 'li', y después añade este 'li' al final de list.
-  li.appendChild(ExName);
-  li.appendChild(deleteBtn);
-  list.appendChild(li);
-  });
+  if (type === "folder") {
+    // Si es carpeta, se agregan checkbox y botón "+"
+    li.classList.add('folder');
 
-// FILTRAR EJERCICIOS
+    // Checkbox para mostrar/ocultar subcarpetas
+    const toggle = document.createElement('input');
+    toggle.type = "checkbox";
+    toggle.classList.add('toggle');
+    toggle.checked = true;
 
-const searchBar = document.forms['search-ex'].querySelector('input'); // Selecciona el campo de entrada dentro del formulario search-ex para buscar ejercicios y lo guarda en searchBar.
-// Añade un evento 'keyup' al campo de búsqueda que se ejecutará cada vez que se suelte una tecla.
-searchBar.addEventListener('keyup',(e)=>{// FUNCIÓN DE FLECHA
-   
-  const term = e.target.value.toLowerCase();// to insure matches para asegurar coincidencias --> Convierte el texto de búsqueda en minúsculas para realizar una comparación insensible a mayúsculas.
-  
-  const exercises = list.getElementsByTagName('li'); // Obtiene todos los elementos 'li' de list (la lista de ejercicios).
-  
-  // Convierte exercises en un array y recorre cada ejercicio (exer) en la lista.
-  Array.from(exercises).forEach(function (exer){ //FOR EACH instead of for loop
-    // Obtiene el texto del primer elemento hijo (el nombre del ejercicio) dentro de cada <li>.
-    const title = exer.firstElementChild.textContent;   
-    // Si el término de búsqueda no se encuentra en el título (indexOf(term) == -1), oculta el ejercicio (display: none). 
-    if(title.toLowerCase().indexOf(term) == -1){ //-1 significa no presente
-      exer.style.display = 'none';
-      // Si lo encuentra, muestra el ejercicio (display: block).
-    } else {
-      exer.style.display = 'block';
+    // Botón "+" para agregar elementos dentro de esta carpeta
+    const addBtn = document.createElement('span');
+    addBtn.textContent = '+';
+    addBtn.classList.add('add');
+
+    // Sublista vacía para elementos hijos
+    const subList = document.createElement('ul');
+
+    // Se agregan todos los elementos a la carpeta
+    li.appendChild(deleteBtn);
+    li.appendChild(toggle);
+    li.appendChild(nameSpan);
+    li.appendChild(addBtn);
+    li.appendChild(subList);
+
+  } else {
+    // Si es archivo
+    li.classList.add('file');
+    li.appendChild(deleteBtn);
+    li.appendChild(nameSpan);
+  }
+
+  // ==============================
+  // AGREGAR ELEMENTO AL ÁRBOL
+  // ==============================
+  const selectedFolder = document.querySelector('.folder.selected') || list.querySelector('li'); // carpeta raíz por defecto
+  const targetList = selectedFolder.querySelector('ul'); // sublista donde se insertará
+  targetList.appendChild(li);
+
+  // Limpiar campo de texto
+  nameInput.value = "";
+});
+
+// ==============================
+// EVENTO: OCULTAR O MOSTRAR TODO EL ÁRBOL
+// ==============================
+const hideBox = document.querySelector('#hide');
+hideBox.addEventListener('change', function () {
+  if (hideBox.checked) {
+    list.style.display = "none"; // Oculta todo
+  } else {
+    list.style.display = "block"; // Muestra todo
+  }
+});
+
+// ==============================
+// EVENTO: EXPANDIR O COLAPSAR CARPETAS
+// ==============================
+list.addEventListener('change', function (e) {
+  if (e.target.classList.contains('toggle')) {
+    const subList = e.target.parentElement.querySelector('ul'); // sublista de la carpeta
+    subList.style.display = e.target.checked ? "block" : "none"; // mostrar u ocultar
+  }
+});
+
+// ==============================
+// EVENTO: FILTRAR ARCHIVOS Y CARPETAS
+// ==============================
+const searchBar = document.forms['search-ex'].querySelector('input');
+
+searchBar.addEventListener('keyup', (e) => {
+  const term = e.target.value.toLowerCase(); // texto de búsqueda
+  const allLis = list.querySelectorAll('li');
+
+  // Función recursiva: verifica si un elemento o sus hijos coinciden
+  function coincide(li) {
+    const name = li.querySelector('.name')?.textContent.toLowerCase() || '';
+    const hijos = li.querySelectorAll(':scope > ul > li');
+    let matchHijo = false;
+
+    // Revisa todos los hijos
+    hijos.forEach(h => {
+      if (coincide(h)) matchHijo = true;
+    });
+
+    // Si coincide él o algún hijo → mostrar
+    const matchPropio = name.includes(term);
+    const mostrar = matchPropio || matchHijo;
+    li.style.display = mostrar ? 'list-item' : 'none';
+    return mostrar;
+  }
+
+  // Aplica la función desde la raíz
+  list.querySelectorAll(':scope > li').forEach(li => coincide(li));
+});
+
+// ==============================
+// EVENTO OPCIONAL: AUTOCOMPLETAR NOMBRE CON TAB
+// ==============================
+searchBar.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') {
+    const term = searchBar.value.toLowerCase();
+    const coincidencias = [...list.querySelectorAll('.name')]
+      .map(n => n.textContent)
+      .filter(n => n.toLowerCase().startsWith(term));
+
+    // Solo si hay una coincidencia
+    if (coincidencias.length === 1) {
+      e.preventDefault();
+      searchBar.value = coincidencias[0];
     }
-  });
+  }
 });
